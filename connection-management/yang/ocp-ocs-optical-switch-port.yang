@@ -1,0 +1,191 @@
+module ocp-ocs-optical-switch-port {
+
+  yang-version "1";
+
+  // namespace
+  namespace "http://openconfig.net/yang/optical-switch-port";
+
+  prefix "ocp-ocs-opt-sw-port";
+
+  // imports
+  import ietf-yang-types { prefix yang; }
+  import openconfig-types { prefix oc-types; }
+  import openconfig-yang-types { prefix oc-yang-types; }
+  import openconfig-transport-types { prefix oc-opt-types; }
+  import openconfig-extensions { prefix oc-ext; }
+  import openconfig-platform { prefix oc-platform; }
+  import ocp-ocs-optical-switch { prefix ocp-ocs-opt-sw; }
+
+  // meta
+  organization "Open Compute Project";
+
+  contact "Me!";
+
+  description
+    "This module defines a new port component for Optical Circuit Switches (OCSes) for augmentation
+     into the OpenConfig Platform model (openconfig-platform).
+
+     Combined with the ocp-ocs-optical-switch and ocp-ocs-optical-switch-connections modules,
+     functionality is modelled for establishing port connections (cross-connections),
+     reporting port statuses, assigning metadata and a variety of other features found in OCS products.
+
+     This revision should be considered to be a strawman for further discussion
+     within the OCP OCS Subproject.";
+
+  oc-ext:openconfig-version "0.8.0";
+
+  revision "2026-08-28" {
+    description "Initial model (strawman based on discussions within the OCP OCS Subproject).";
+    reference "0.8.0";
+  }
+
+  // OpenConfig specific extensions for module metadata.
+  oc-ext:regexp-posix;
+  oc-ext:catalog-organization "TBD";
+  oc-ext:origin "TBD";
+
+  // identity statements
+
+  // typedef statements
+
+  typedef ocp-ocs-port-status-enum {
+    type enumeration {
+      enum BLOCKED {
+        description "Port is not in an active connection or is disabled.";
+      }
+      enum FAILED {
+        description "Port has failed and any connections using this port will enter the FAILED state.";
+      }
+      enum TUNING {
+        description "Port is in a transient state in which a connection is being established or deleted.";
+      }
+      enum TUNED {
+        description "Port is in a state where the current intended connection is active.";
+      }
+      enum UNKNOWN {
+        description "Port is in an unknown state.";
+      }
+    }
+  }
+
+  // grouping statements
+
+  grouping ocp-ocs-port-config {
+    leaf enabled {
+      type boolean;
+      description "OCS port admin state. Disabled ports cannot be used.";
+    }
+    leaf alias {
+      type string;
+      description "Optional user configurable port name.";
+    }
+    leaf description {
+      type string;
+      description "Additional optional user configurable meta data.";
+    }
+  }
+
+  grouping ocp-ocs-port-state {
+    leaf group {
+      type leafref {
+        path "/ocp-ocs-opt-sw:optical-switch/ocp-ocs-opt-sw:state/ocp-ocs-opt-sw:port-groups/ocp-ocs-opt-sw:name";
+      }
+      description "Describes on which 'side' of the switch this port is located within the switch core.";
+    }
+    leaf index {
+      type uint32;
+      description "Numeric port index number assigned by the switch.";
+    }
+    leaf status {
+      type ocp-ocs-port-status-enum;
+      description "Current status of the port.";
+    }
+    leaf input-optical-power {
+      type decimal64 {
+        fraction-digits 2;
+      }
+      units "dBm";
+      description "Optical power measured at the input of this port.";
+    }
+    leaf output-optical-power {
+      type decimal64 {
+        fraction-digits 2;
+      }
+      units "dBm";
+      description "Optical power measured at the output of this port.";
+    }
+    container connection {
+      leaf peer {
+        type leafref {
+          path "/oc-platform:components/oc-platform:component/oc-platform:name";
+        }
+        description "Peer port for the connection associated with this port";
+      }
+      leaf connected {
+        type boolean;
+        description "Port is connected to a peer port in the switch core.";
+      }
+      container counters {
+        leaf correctable-error-count {
+          type oc-yang-types:counter64;
+          description "Count of error conditions relating to the optical performance of this
+                       connection that have occured and subsequently cleared during the lifetime
+                       of the connection. These error conditions may or may not have temporarily
+                       affected the quality of the connection.";
+        }
+        leaf total-error-count {
+          type oc-yang-types:counter64;
+          description "Total count of error conditions relating to the optical performance of this connection.";
+        }
+        description "Error counts relating the optical performance of this connection, if supported.";
+      }
+      description "Details of current connection associated with this port.";
+    }
+    container counters {
+      leaf correctable-error-count {
+        type oc-yang-types:counter64;
+        description "Count of error conditions relating to the optical perfomance of all connections that have
+                     originated from this port and have subsequently cleared. These error conditions may or may
+                     not have temporarily affected the quality of the connections.";
+      }
+      leaf total-error-count {
+        type oc-yang-types:counter64;
+        description "Total count of error conditions relating to the optical performance of all connections
+                     that have originated from this port.";
+      }
+      description "Error counts for the port since last boot.";
+    }
+  }
+
+  grouping ocp-ocs-port-top {
+    container ocp-ocs-port {
+      container config {
+        uses ocp-ocs-port-config;
+
+        description "Configuration for an OCP OCS port.";
+      }
+
+      container state {
+        config false;
+        uses ocp-ocs-port-config;
+        uses ocp-ocs-port-state;
+
+        description "Operational state for an OCP OCS port.";
+      }
+    }
+  }
+
+
+
+  // data definition statements
+
+  // augment statements
+
+  augment "/oc-platform:components/oc-platform:component" {
+    uses ocp-ocs-port-top;
+  }
+
+  // rpc statements
+
+  // notification statements
+}
