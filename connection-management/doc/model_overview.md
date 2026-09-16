@@ -236,9 +236,9 @@ Step 5:  Create any new connections which are not in the existing physical state
 
 ## Port state diagram
 
-![Port status state diagram](/port_state_diagram.png)
+![Port status state diagram](port_state_diagram.png)
 
 ## Connection state diagram
 
-![Connection status state diagram](/connection_state_diagram.png)
+![Connection status state diagram](connection_state_diagram.png)
 
