@@ -1,0 +1,165 @@
+module ocp-ocs-optical-switch {
+
+  yang-version "1";
+
+  // namespace
+  namespace "http://openconfig.net/yang/optical-switch";
+
+  prefix "ocp-ocs-opt-sw";
+
+  // imports
+  import ietf-yang-types { prefix yang; }
+  import openconfig-types { prefix oc-types; }
+  import openconfig-yang-types { prefix oc-yang-types; }
+  import openconfig-transport-types { prefix oc-opt-types; }
+  import openconfig-extensions { prefix oc-ext; }
+  import openconfig-platform { prefix oc-platform; }
+
+  // meta
+  organization "Open Compute Project";
+
+  contact "Me!";
+
+  description
+    "This module defines global configuration and operational state for an
+     Optical Circuit Switch (OCS). The connections are defined in another
+     module - opc-ocs-optical-switch-connections.
+
+     Combined with the connections module, functionality is modelled for
+     establishing port connections (cross-connections), reporting port statuses,
+     assigning metadata and a variety of other features found in OCS products.
+
+     This revision should be considered to be a strawman for further discussion
+     within the OCP OCS Subproject.";
+
+  oc-ext:openconfig-version "0.8.0";
+
+  revision "2026-08-28" {
+    description "Initial model (strawman based on discussions within the OCP OCS Subproject).";
+    reference "0.8.0";
+  }
+
+  // OpenConfig specific extensions for module metadata.
+  oc-ext:regexp-posix;
+  oc-ext:catalog-organization "TBD";
+  oc-ext:origin "TBD";
+
+  // identity statements
+
+  // typedef statements
+
+  typedef cold-boot-recovery-enum {
+    type enumeration {
+      enum MAINTAIN {
+        description "Connections are maintained without interruption during cold boot.";
+      }
+      enum RESTORE {
+        description "Connections are broken during reboot but then recovered."; 
+      }
+      enum REMOVE {
+        description "Connections are broken during reboot and not recovered.";
+      }
+    }
+  }
+
+  typedef port-group-direction-enum {
+    type enumeration {
+      enum INPUT-ONLY {
+        description "Ports in a group of this type only support transmission of optical
+                     signals into the switch.";
+      }
+      enum OUTPUT-ONLY {
+        description "Ports in a group of this type only support transmission of optical
+                     signals out of the switch.";
+      }
+      enum ANY {
+        description "Ports in a group of this type support transmission of optical signals
+                     into or out of the switch.";
+      }
+    }
+  }
+
+  // grouping statements
+
+  grouping optical-switch-global-config {
+    leaf bidirectional {
+      type boolean;
+      description "Indicates if ports and connections can support bidi transmission";
+    }
+    leaf cold-boot-recovery {
+      type cold-boot-recovery-enum;
+      description "Defines how existing connections are handled during a cold boot.";
+    }
+  } 
+
+  grouping optical-switch-global-state {
+    leaf connection-recovery-capability {
+      type cold-boot-recovery-enum;
+      description "Defines the hardware capability to maintain or restore connections during a cold boot.
+                   The advertised capability represents the least traffic impacting option that the switch supports.
+                   <spell it out>";
+    }
+    list port-groups {
+      key "name";
+      description "This is used to describe any constraints placed on connections that
+                   can be made through the switch core due to technological and architectural
+                   characteristics of the switch hardware.";
+
+      leaf name {
+        description "Device-defined name of port group.";
+        type string;
+      }
+      leaf direction {
+        type port-group-direction-enum;
+        description "Direction of all ports in port group. This relates to where a port can appear in
+                     the connection tree.";
+      }
+      list connection-groups {
+        key "peer-name";
+        description "A list of other port groups within the switch to which ports in this port
+                     group can be connected.";
+
+        leaf peer-name {
+          type leafref {
+            path "../../name";
+          }
+        }
+      }
+    }
+  }
+ 
+  grouping optical-switch-global-top {
+    description
+      "Top-level grouping for global optical circuit switch state and configuration.";
+
+    container optical-switch {
+      description
+        "Optical switch global settings.";
+
+      container config {
+        uses optical-switch-global-config;
+
+        description
+          "Global configuration items for an optical switch.";
+      }
+      container state {
+        config false;
+        uses optical-switch-global-config;
+        uses optical-switch-global-state;
+
+        description
+          "Global operational state items for an optical switch.";
+      }
+    }
+  }
+
+  // data definition statements
+
+  uses optical-switch-global-top;
+
+  // augment statements
+
+  // rpc statements
+
+  // notification statements
+}
