@@ -33,7 +33,13 @@ module ocp-ocs-optical-switch-connections {
      This revision should be considered to be a strawman for further discussion
      within the OCP OCS Subproject.";
 
-  oc-ext:openconfig-version "0.8.0";
+  oc-ext:openconfig-version "0.8.1";
+
+  revision "2026-10-28" {
+    description "Apply bug fixes identified in initial review documented in the following PR:
+                 https://github.com/opencomputeproject/ocp-net-optical-circuit-switching/pull/2";
+    reference "0.8.1";
+  }
 
   revision "2026-08-28" {
     description "Initial model (strawman based on discussions within the OCP OCS Subproject).";
@@ -69,27 +75,6 @@ module ocp-ocs-optical-switch-connections {
       }
     }
   }
-
-  typedef ocp-ocs-port-status-enum {
-    type enumeration {
-      enum BLOCKED {
-        description "Port is not in an active connection or is disabled.";
-      }
-      enum FAILED {
-        description "Port has failed and any connections using this port will enter the FAILED state.";
-      }
-      enum TUNING {
-        description "Port is in a transient state in which a connection is being established or deleted.";
-      }
-      enum TUNED {
-        description "Port is in a state where the current intended connection is active.";
-      }
-      enum UNKNOWN {
-        description "Port is in an unknown state.";
-      }
-    }
-  }
-
 
   // grouping statements
 
@@ -138,7 +123,6 @@ module ocp-ocs-optical-switch-connections {
       "References to the config connection name.";
 
     leaf name {
-      config false;
       type leafref {
         path "../config/name";
       }
