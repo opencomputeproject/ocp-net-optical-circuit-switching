@@ -32,7 +32,13 @@ module ocp-ocs-optical-switch {
      This revision should be considered to be a strawman for further discussion
      within the OCP OCS Subproject.";
 
-  oc-ext:openconfig-version "0.8.0";
+  oc-ext:openconfig-version "0.8.1";
+
+  revision "2026-10-28" {
+    description "Apply bug fixes identified in initial review documented in the following PR:
+                 https://github.com/opencomputeproject/ocp-net-optical-circuit-switching/pull/2";
+    reference "0.8.1";
+  }
 
   revision "2026-08-28" {
     description "Initial model (strawman based on discussions within the OCP OCS Subproject).";
@@ -121,7 +127,7 @@ module ocp-ocs-optical-switch {
 
         leaf peer-name {
           type leafref {
-            path "../../name";
+            path "../../../port-groups/name";
           }
         }
       }
