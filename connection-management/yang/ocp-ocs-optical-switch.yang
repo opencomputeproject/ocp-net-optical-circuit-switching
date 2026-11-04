@@ -70,17 +70,19 @@ module ocp-ocs-optical-switch {
 
   typedef port-group-direction-enum {
     type enumeration {
-      enum INPUT-ONLY {
-        description "Ports in a group of this type only support transmission of optical
-                     signals into the switch.";
+      enum INPUT {
+        description "Ports in a group of this type may only be specified as the input port in
+                     a connection. If the device only supports optical reception within the
+                     port group, the port group must specify INPUT.";
       }
-      enum OUTPUT-ONLY {
-        description "Ports in a group of this type only support transmission of optical
-                     signals out of the switch.";
+      enum OUTPUT {
+        description "Ports in a group of this type may only be specified as the output port
+                     in a connection. If the device only supports optical transmission within
+                     the port group, the port group must specify output OUTPUT.";
       }
       enum ANY {
-        description "Ports in a group of this type support transmission of optical signals
-                     into or out of the switch.";
+        description "Ports in a group of this type may be specified as either the input or
+                     the output port in a connection.";
       }
     }
   }
@@ -90,7 +92,8 @@ module ocp-ocs-optical-switch {
   grouping optical-switch-global-config {
     leaf bidirectional {
       type boolean;
-      description "Indicates if ports and connections can support bidi transmission";
+      description "Indicates if ports and connections can support bidirectional transmission
+                   and reception";
     }
     leaf cold-boot-recovery {
       type cold-boot-recovery-enum;
@@ -101,29 +104,33 @@ module ocp-ocs-optical-switch {
   grouping optical-switch-global-state {
     leaf connection-recovery-capability {
       type cold-boot-recovery-enum;
-      description "Defines the hardware capability to maintain or restore connections during a cold boot.
-                   The advertised capability represents the least traffic impacting option that the switch supports.
-                   <spell it out>";
+      description "Defines the maximum hardware capability to maintain or restore connections during a cold boot.
+                   The advertised capability represents the least traffic impacting option that the switch supports,
+                   with the following order of traffic impact: MAINTAIN < RESTORE < REMOVE.";
     }
     list port-groups {
       key "name";
-      description "This is used to describe any constraints placed on connections that
-                   can be made through the switch core due to technological and architectural
-                   characteristics of the switch hardware.";
+      description "A logical grouping of ports meant to convey common constraints when the member ports are used in
+                   connections. These groupings often reflect technological and architectural characteristics of the
+                   switch hardware.";
 
       leaf name {
-        description "Device-defined name of port group.";
+        description "Device-defined name of the port group.";
         type string;
       }
       leaf direction {
         type port-group-direction-enum;
-        description "Direction of all ports in port group. This relates to where a port can appear in
-                     the connection tree.";
+        description "Specifies the direction constraint for ports within the group. If no constraint applies, this
+                     value should be set to ANY.";
       }
       list connection-groups {
         key "peer-name";
-        description "A list of other port groups within the switch to which ports in this port
-                     group can be connected.";
+        description "A list of all port groups to which ports in this group may connect. If the device supports
+                     any-to-any connections, the connected groups should contain the port group itself.
+
+                     Examples:
+                     An any-to-any switch can contain port-group A with peer group A
+                     A two-sided switch can contain port-group A with peer group B and port-group B with peer group A";
 
         leaf peer-name {
           type leafref {
