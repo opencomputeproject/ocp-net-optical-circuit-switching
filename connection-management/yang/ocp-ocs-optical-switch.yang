@@ -32,7 +32,12 @@ module ocp-ocs-optical-switch {
      This revision should be considered to be a strawman for further discussion
      within the OCP OCS Subproject.";
 
-  oc-ext:openconfig-version "0.8.1";
+  oc-ext:openconfig-version "0.8.2";
+
+  revision "2026-11-11" {
+    description "Improved various description leaves in this module.";
+    reference "0.8.2";
+  }
 
   revision "2026-10-28" {
     description "Apply bug fixes identified in initial review documented in the following PR:

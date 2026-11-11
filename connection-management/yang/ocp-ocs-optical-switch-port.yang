@@ -32,7 +32,12 @@ module ocp-ocs-optical-switch-port {
      This revision should be considered to be a strawman for further discussion
      within the OCP OCS Subproject.";
 
-  oc-ext:openconfig-version "0.8.0";
+  oc-ext:openconfig-version "0.8.1";
+
+  revision "2026-11-11" {
+    description "Changed optical power leaf types to oc-types:avg-min-max-instant-stats-precision2-dBm";
+    reference "0.8.1";
+  }
 
   revision "2026-08-28" {
     description "Initial model (strawman based on discussions within the OCP OCS Subproject).";
@@ -101,18 +106,12 @@ module ocp-ocs-optical-switch-port {
       description "Current status of the port.";
     }
     leaf input-optical-power {
-      type decimal64 {
-        fraction-digits 2;
-      }
-      units "dBm";
       description "Optical power measured at the input of this port.";
+      uses oc-types:avg-min-max-instant-stats-precision2-dBm;
     }
     leaf output-optical-power {
-      type decimal64 {
-        fraction-digits 2;
-      }
-      units "dBm";
       description "Optical power measured at the output of this port.";
+      uses oc-types:avg-min-max-instant-stats-precision2-dBm;
     }
     container connection {
       leaf peer {
