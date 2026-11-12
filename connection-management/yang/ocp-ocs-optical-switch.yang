@@ -1,0 +1,183 @@
+module ocp-ocs-optical-switch {
+
+  yang-version "1";
+
+  // namespace
+  namespace "http://openconfig.net/yang/optical-switch";
+
+  prefix "ocp-ocs-opt-sw";
+
+  // imports
+  import ietf-yang-types { prefix yang; }
+  import openconfig-types { prefix oc-types; }
+  import openconfig-yang-types { prefix oc-yang-types; }
+  import openconfig-transport-types { prefix oc-opt-types; }
+  import openconfig-extensions { prefix oc-ext; }
+  import openconfig-platform { prefix oc-platform; }
+
+  // meta
+  organization "Open Compute Project";
+
+  contact "Me!";
+
+  description
+    "This module defines global configuration and operational state for an
+     Optical Circuit Switch (OCS). The connections are defined in another
+     module - opc-ocs-optical-switch-connections.
+
+     Combined with the connections module, functionality is modelled for
+     establishing port connections (cross-connections), reporting port statuses,
+     assigning metadata and a variety of other features found in OCS products.
+
+     This revision should be considered to be a strawman for further discussion
+     within the OCP OCS Subproject.";
+
+  oc-ext:openconfig-version "0.8.2";
+
+  revision "2026-11-11" {
+    description "Improved various description leaves in this module.";
+    reference "0.8.2";
+  }
+
+  revision "2026-10-28" {
+    description "Apply bug fixes identified in initial review documented in the following PR:
+                 https://github.com/opencomputeproject/ocp-net-optical-circuit-switching/pull/2";
+    reference "0.8.1";
+  }
+
+  revision "2026-08-28" {
+    description "Initial model (strawman based on discussions within the OCP OCS Subproject).";
+    reference "0.8.0";
+  }
+
+  // OpenConfig specific extensions for module metadata.
+  oc-ext:regexp-posix;
+  oc-ext:catalog-organization "TBD";
+  oc-ext:origin "TBD";
+
+  // identity statements
+
+  // typedef statements
+
+  typedef cold-boot-recovery-enum {
+    type enumeration {
+      enum MAINTAIN {
+        description "Connections are maintained without interruption during cold boot.";
+      }
+      enum RESTORE {
+        description "Connections are broken during reboot but then recovered."; 
+      }
+      enum REMOVE {
+        description "Connections are broken during reboot and not recovered.";
+      }
+    }
+  }
+
+  typedef port-group-direction-enum {
+    type enumeration {
+      enum INPUT {
+        description "Ports in a group of this type may only be specified as the input port in
+                     a connection. If the device only supports optical reception within the
+                     port group, the port group must specify INPUT.";
+      }
+      enum OUTPUT {
+        description "Ports in a group of this type may only be specified as the output port
+                     in a connection. If the device only supports optical transmission within
+                     the port group, the port group must specify output OUTPUT.";
+      }
+      enum ANY {
+        description "Ports in a group of this type may be specified as either the input or
+                     the output port in a connection.";
+      }
+    }
+  }
+
+  // grouping statements
+
+  grouping optical-switch-global-config {
+    leaf bidirectional {
+      type boolean;
+      description "Indicates if ports and connections can support bidirectional transmission
+                   and reception";
+    }
+    leaf cold-boot-recovery {
+      type cold-boot-recovery-enum;
+      description "Defines how existing connections are handled during a cold boot.";
+    }
+  } 
+
+  grouping optical-switch-global-state {
+    leaf connection-recovery-capability {
+      type cold-boot-recovery-enum;
+      description "Defines the maximum hardware capability to maintain or restore connections during a cold boot.
+                   The advertised capability represents the least traffic impacting option that the switch supports,
+                   with the following order of traffic impact: MAINTAIN < RESTORE < REMOVE.";
+    }
+    list port-groups {
+      key "name";
+      description "A logical grouping of ports meant to convey common constraints when the member ports are used in
+                   connections. These groupings often reflect technological and architectural characteristics of the
+                   switch hardware.";
+
+      leaf name {
+        description "Device-defined name of the port group.";
+        type string;
+      }
+      leaf direction {
+        type port-group-direction-enum;
+        description "Specifies the direction constraint for ports within the group. If no constraint applies, this
+                     value should be set to ANY.";
+      }
+      list connection-groups {
+        key "peer-name";
+        description "A list of all port groups to which ports in this group may connect. If the device supports
+                     any-to-any connections, the connected groups should contain the port group itself.
+
+                     Examples:
+                     An any-to-any switch can contain port-group A with peer group A
+                     A two-sided switch can contain port-group A with peer group B and port-group B with peer group A";
+
+        leaf peer-name {
+          type leafref {
+            path "../../../port-groups/name";
+          }
+        }
+      }
+    }
+  }
+ 
+  grouping optical-switch-global-top {
+    description
+      "Top-level grouping for global optical circuit switch state and configuration.";
+
+    container optical-switch {
+      description
+        "Optical switch global settings.";
+
+      container config {
+        uses optical-switch-global-config;
+
+        description
+          "Global configuration items for an optical switch.";
+      }
+      container state {
+        config false;
+        uses optical-switch-global-config;
+        uses optical-switch-global-state;
+
+        description
+          "Global operational state items for an optical switch.";
+      }
+    }
+  }
+
+  // data definition statements
+
+  uses optical-switch-global-top;
+
+  // augment statements
+
+  // rpc statements
+
+  // notification statements
+}
